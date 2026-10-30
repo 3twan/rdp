@@ -7,13 +7,14 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Download ngrok
+      - name: Download & Setup ngrok
         shell: powershell
         run: |
           Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
           Expand-Archive ngrok.zip -DestinationPath $PWD
-          $env:PATH += ";$PWD"
-          ./ngrok.exe authtoken 2ymQqpwlE7F0Unr0CznvNFzJDiS_34YDy8sfrCw8iFqBTZxTe
+          
+          # الطريقة الحديثة الصحيحة لإضافة التوكن في إصدارات ngrok الحالية
+          ./ngrok.exe config add-authtoken 2ymQqpwlE7F0Unr0CznvNFzJDiS_34YDy8sfrCw8iFqBTZxTe
 
       - name: Enable RDP
         shell: powershell
@@ -21,5 +22,10 @@ jobs:
           net user atwan 6827.Nnnn /add
           net localgroup administrators atwan /add
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name 'UserAuthentication' -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+      - name: Start Ngrok Tunnel
+        shell: powershell
+        run: |
           ./ngrok.exe tcp 3389
